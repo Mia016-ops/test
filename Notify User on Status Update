@@ -1,0 +1,66 @@
+.github/workflows/notify_user.yml
+name: Notify User on Status Update
+
+# 1. 触发器：当 Issue 被添加标签 (labeled) 或重新打开 (reopened) 时触发
+on:
+  issues:
+    types: [labeled, reopened]
+
+jobs:
+  send_email_update:
+    runs-on: ubuntu-latest
+
+    # 2. 条件判断：只有当标签是 'status: resolved' 时才运行
+    #    您可以根据需要修改或添加其他标签，例如 'status: in-progress'
+    if: github.event.label.name == 'status: resolved'
+
+    steps:
+      # 3. 提取用户邮箱地址
+      - name: Extract User Email
+        id: extract_email
+        run: |
+          # 从 Issue 内容中查找 '原始用户邮箱:' 这一行，并提取该行最后一个字段（即邮箱地址）
+          # 确保这一行在 Issue Body 中格式是固定的
+          EMAIL=$(echo "${{ github.event.issue.body }}" | grep "原始用户邮箱:" | awk '{print $NF}')
+
+          # 确保提取到了邮箱，否则流程失败
+          if [ -z "$EMAIL" ]; then
+            echo "Error: User email not found in issue body."
+            exit 1
+          fi
+
+          # 将提取到的邮箱地址保存为输出变量
+          echo "user_email=$EMAIL" >> $GITHUB_OUTPUT
+        shell: bash
+
+      # 4. 发送邮件
+      - name: Send Resolution Email
+        uses: dawidd6/action-send-mail@v3  # 使用一个常用的邮件发送 Action
+        with:
+          # SMTP 配置 (使用您在 Secrets 中配置的变量)
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          # 邮件内容配置
+          subject: '工单更新：您的 Bug/功能请求 # ${{ github.event.issue.number }} 已解决'
+          to: ${{ steps.extract_email.outputs.user_email }} # 使用上一步提取到的用户邮箱
+          from: ${{ secrets.SMTP_USERNAME }}
+          # 邮件正文
+          body: |
+            尊敬的用户您好,
+
+            感谢您的耐心等待。我们很高兴通知您，您提交的工单：
+            **${{ github.event.issue.title }}**
+
+            已在 GitHub 上标记为 **已解决 (Resolved)**。
+
+            我们已发布更新或找到了解决方案。
+
+            您可以在此链接查看 Issue 详情:
+            ${{ github.event.issue.html_url }}
+
+            如果您有任何疑问，请随时回复此邮件。
+
+            此致，
+            [您的团队名称]
