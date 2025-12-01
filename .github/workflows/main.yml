@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. 提取收件人邮箱 (新逻辑: 根据 From 内容有条件地提取邮箱)
+    
     - name: 📩 Extract Email from Issue Body (Conditional)
       id: extract_email
       run: |
