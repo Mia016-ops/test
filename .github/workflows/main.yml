@@ -28,17 +28,18 @@ jobs:
         id: extract_email
         run: |
           
-          EMAIL=$(echo "${{ github.event.issue.body }}" | grep "邮箱/手机:" | head -1 | sed 's/.*用户邮箱:\s*//')
+          EMAIL_LINE=$(echo "${{ github.event.issue.body }}" | grep "用户邮箱:")
           
           
-          EMAIL=$(echo "$EMAIL" | tr -d '\n\r')
-
+          EMAIL=$(echo "$EMAIL_LINE" | sed -E 's/.*用户邮箱:[[:space:]]*//' | tr -d '"' | tr -d '\n\r' | awk '{print $1}')
+          
+          
           if [ -z "$EMAIL" ]; then
-            echo "Error: Could not extract email. Check the Issue body format."
+            echo "Error: Could not extract email from line: $EMAIL_LINE"
             exit 1
           fi
 
-          echo "Extracted Email: $EMAIL"
+          echo "Successfully Extracted Email: $EMAIL"
           echo "user_email=$EMAIL" >> $GITHUB_OUTPUT
         shell: bash
 
