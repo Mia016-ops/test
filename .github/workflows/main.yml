@@ -5,55 +5,47 @@ on:
 
 jobs:
   send_email_on_resolved:
+    # 仅在 Issue 标签包含 'resolved' 且 'unlabeled' 事件未发生时运行
     if: |
       github.event.action == 'labeled' &&
       contains(github.event.issue.labels.*.name, 'resolved')
     runs-on: ubuntu-latest
     
     steps:
-      # 1. 提取收件人邮箱
-    - name: 📩 Extract Email from Issue Body (Conditional)
-      id: extract_email
-      run: |
-        # 1. 提取 Issue Body 完整内容
-        ISSUE_BODY="${{ github.event.issue.body }}"
-
-        # 2. 提取 Issue Body 第二行
-        LINE_FROM=$(echo "$ISSUE_BODY" | sed -n '2p')
-
-        # 3. 提取 Issue Body 第三行
-        LINE_REPLY_TO=$(echo "$ISSUE_BODY" | sed -n '3p')
-
-        # 4. 初始化目标行变量
-        TARGET_LINE=""
-
-        # 5. 检查 LINE_FROM 是否包含 "Support" (不区分大小写)
-        if echo "$LINE_FROM" | grep -iq "Support"; then
-          # 如果包含 "Support"，则使用第 3 行 (Reply-To)
-          TARGET_LINE="$LINE_REPLY_TO"
-          echo "Info: 'From' field contains 'Support'. Targeting 'Reply-To' line (Line 3)."
-        else
-          # 否则，使用第 2 行 (From)
-          TARGET_LINE="$LINE_FROM"
-          echo "Info: 'From' field does not contain 'Support'. Targeting 'From' line (Line 2)."
-        fi
-
-        # 6. 提取邮件地址的正则表达式
-        EMAIL_REGEX='([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)'
-
-        # 7. 从目标行中提取邮件
-        email=$(echo "$TARGET_LINE" | grep -o -E $EMAIL_REGEX)
-        
-        # 8. 检查结果并设置输出变量 ($GITHUB_OUTPUT)
-        if [ -z "$email" ]; then
-          echo "::error::Could not find email address in the target line: $TARGET_LINE. Skipping email."
-          echo "extracted_email=no-reply@example.com" >> "$GITHUB_OUTPUT"
-        else
-          echo "Extracted email: $email"
-          echo "extracted_email=$email" >> "$GITHUB_OUTPUT"
-        fi
-      shell: bash
-
+        # 1. 提取收件人邮箱
+      - name: 📩 Extract Email from Issue Body (Conditional)
+        id: extract_email
+        run: |
+          ISSUE_BODY="${{ github.event.issue.body }}"
+  
+          LINE_FROM=$(echo "$ISSUE_BODY" | sed -n '2p')
+          LINE_REPLY_TO=$(echo "$ISSUE_BODY" | sed -n '3p')
+  
+          TARGET_LINE=""
+  
+          # 检查 LINE_FROM 是否包含 "support@filomail.com" 
+          if echo "$LINE_FROM" | grep -iq "Support"; then
+            TARGET_LINE="$LINE_REPLY_TO"
+            echo "Info: 'From' field contains 'support@filomail.com'. Targeting 'Reply-To' line (Line 3)."
+          else
+            TARGET_LINE="$LINE_FROM"
+            echo "Info: 'From' field does not contain 'support@filomail.com'. Targeting 'From' line (Line 2)."
+          fi
+  
+          EMAIL_REGEX='([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)'
+  
+          # 从目标行中提取邮件
+          email=$(echo "$TARGET_LINE" | grep -o -E $EMAIL_REGEX)
+          
+          # 检查结果并设置输出变量
+          if [ -z "$email" ]; then
+            echo "::error::Could not find email address in the target line: $TARGET_LINE. Skipping email."
+            echo "extracted_email=no-reply@example.com" >> "$GITHUB_OUTPUT"
+          else
+            echo "extracted_email=$email" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+      
       # 2. 发送 Resolved 通知邮件
       - name: ✉️ Send Resolved Notification Email
         uses: dawidd6/action-send-mail@v3
