@@ -23,23 +23,21 @@ jobs:
           echo "Action Triggered. Label: ${{ github.event.label.name }}"
           echo "Issue Body Start: ${{ github.event.issue.body }}"
 
-      # 2. 提取用户邮箱地址 (最终修正版，使用 Here String)
+      # 2. 提取用户邮箱地址 (最终、最安全的版本)
       - name: Extract User Email
         id: extract_email
         run: |
-          # 1. 找到包含 '用户邮箱:' 的完整行
-          # 2. 从多行 Issue Body 中提取邮箱行，并清理掉所有 Shell 干扰字符
+          # 将 Issue Body 安全地写入一个临时文件 (克服换行符和引号问题)
+          printf "%s" "${{ github.event.issue.body }}" > issue_body.txt
           
-          # 使用 grep 确保找到包含关键词的行
-          EMAIL_LINE=$(echo "${{ github.event.issue.body }}" | grep "用户邮箱:")
+          # 使用 cat 安全地读取文件，并用 sed/awk 提取邮箱
+          EMAIL=$(cat issue_body.txt | grep "用户邮箱:" | sed -E 's/.*用户邮箱:[[:space:]]*//' | tr -d '\r\n"' | awk '{print $1}')
           
-          # 使用 Here String 确保安全地将变量传递给 sed 并提取，同时清理引号、空格和换行符
-          # sed 命令现在更简化，直接提取冒号后的第一个非空格字符序列
-          EMAIL=$(echo "$EMAIL_LINE" | sed -E 's/.*用户邮箱:[[:space:]]*//' | tr -d '\r\n"' | awk '{print $1}')
-
           # 验证邮箱是否提取成功
           if [ -z "$EMAIL" ]; then
-            echo "Error: Could not extract email from line: $EMAIL_LINE"
+            echo "Error: Could not extract email. Please check the Issue body for '用户邮箱:' format."
+            # 为了调试，输出 Issue Body 的所有内容
+            cat issue_body.txt
             exit 1
           fi
 
