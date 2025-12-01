@@ -50,13 +50,12 @@ jobs:
           # ... (邮件内容配置不变) ...
           subject: "[Resolved] Issue # ${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
           html_body: |
-            <p>尊敬的工单提交人，</p>
-            <p>您提交的 GitHub Issue 状态已更新：</p>
+            <p>Dear reporter，</p>
+            <p>Your submitted GitHub Issue status has been updated:</p>
             <ul>
-              <li><strong>Issue 标题:</strong> <a href="${{ github.event.issue.html_url }}">${{ github.event.issue.title }}</a></li>
-              <li><strong>Issue 编号:</strong> #${{ github.event.issue.number }}</li>
-              <li><strong>新状态:</strong> <strong>已解决 (Resolved)</strong></li>
+              <li><strong>Issue Title:</strong> <a href="${{ github.event.issue.html_url }}">${{ github.event.issue.title }}</a></li>
+              <li><strong>New status:</strong> <strong> Resolved </strong></li>
             </ul>
-            <p><strong><a href="${{ github.event.issue.html_url }}">点击此处查看 Issue 详情</a></strong></p>
+            <p><strong><a href="${{ github.event.issue.html_url }}">Click here to view the Issue details.</a></strong></p>
             <br>
-            <p>请注意：此邮件由 GitHub Actions 自动化发送，请勿直接回复。</p>
+            <p>Please note: This email was sent automatically by GitHub Actions. Please do not reply directly.</p>
