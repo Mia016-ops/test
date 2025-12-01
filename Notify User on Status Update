@@ -1,6 +1,6 @@
 name: Notify User on Status Update
 
-# 1. 触发器：当 Issue 被添加标签 (labeled) 或重新打开 (reopened) 时触发
+# 1. 触发器：监听 Issue 被添加标签或重新打开的事件
 on:
   issues:
     types: [labeled, reopened]
@@ -8,13 +8,13 @@ on:
 jobs:
   send_email_update:
     runs-on: ubuntu-latest
-
-    # 2. 优化后的条件判断：判断是否为 'status: resolved' 标签，并且确保事件类型是 labeled 
-    #    (reopened 事件没有 label 属性，直接访问会出错，虽然不致命，但最好排除)
+    
+    # 2. 严格的条件判断：确保事件是 'labeled' 且 标签名为 'status: resolved'
+    #    请务必确认您的 GitHub 标签名称是 'status: resolved'
     if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'status: resolved'
 
     steps:
-      # --- 新增调试步骤：打印 Issue Body 内容和事件信息 ---
+      # --- 1. 调试步骤：打印 Issue Body 内容和事件信息 ---
       - name: Debug Event and Issue Body
         run: |
           echo "GitHub Event Name: ${{ github.event_name }}"
@@ -24,11 +24,11 @@ jobs:
           echo "${{ github.event.issue.body }}"
           echo "------------------"
 
-      # 3. 提取用户邮箱地址 (提取逻辑不变)
+      # 3. 提取用户邮箱地址
       - name: Extract User Email
         id: extract_email
         run: |
-          # 确保您的 Issue Body 中包含 '原始用户邮箱:' 这段文字
+          # 提取逻辑：查找 '原始用户邮箱:' 这一行，并提取该行最后一个字段 (邮箱地址)
           EMAIL=$(echo "${{ github.event.issue.body }}" | grep "原始用户邮箱:" | awk '{print $NF}')
 
           # 确保提取到了邮箱，否则流程失败
@@ -45,7 +45,7 @@ jobs:
       - name: Send Resolution Email
         uses: dawidd6/action-send-mail@v3
         with:
-          # SMTP 配置 (使用您在 Secrets 中配置的变量)
+          # SMTP 配置 (使用 Secrets)
           server_address: ${{ secrets.SMTP_HOST }}
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USERNAME }}
@@ -56,7 +56,6 @@ jobs:
           from: ${{ secrets.SMTP_USERNAME }}
           # 邮件正文
           body: |
-            # ... (邮件正文保持不变)
             尊敬的用户您好,
 
             感谢您的耐心等待。我们很高兴通知您，您提交的工单：
