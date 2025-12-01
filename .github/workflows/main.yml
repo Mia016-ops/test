@@ -28,8 +28,8 @@ jobs:
             TARGET_LINE="$LINE_REPLY_TO"
             echo "Info: 'From' field contains 'support@filomail.com'. Targeting 'Reply-To' line (Line 3)."
           else
-            TARGET_LINE="$LINE_FROM"
-            echo "Info: 'From' field does not contain 'support@filomail.com'. Targeting 'From' line (Line 2)."
+            TARGET_LINE="$LINE_REPLY_TO"
+            echo "Info: 'From' field does not contain 'support@filomail.com'. Targeting 'From' line (Line 3)."
           fi
   
           EMAIL_REGEX='([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)'
