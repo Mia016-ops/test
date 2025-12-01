@@ -28,7 +28,7 @@ jobs:
         id: extract_email
         run: |
           
-          EMAIL=$(echo "${{ github.event.issue.body }}" | grep "邮箱/手机:" | head -1 | sed 's/.*邮箱\/手机:\s*//')
+          EMAIL=$(echo "${{ github.event.issue.body }}" | grep "邮箱/手机:" | head -1 | sed 's/.*用户邮箱:\s*//')
           
           
           EMAIL=$(echo "$EMAIL" | tr -d '\n\r')
