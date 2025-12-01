@@ -1,0 +1,53 @@
+name: Notify User Notification
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  send_email_update:
+    runs-on: ubuntu-latest
+
+    # 权限设置，有时需要此项
+    permissions:
+      issues: read 
+      contents: read
+
+    # 条件判断：匹配您实际使用的标签 'resolved'
+    if: github.event.action == 'labeled' && github.event.label.name == 'resolved'
+
+    steps:
+      # 1. Debug：检查事件是否被正确捕获
+      - name: Debug Event and Label
+        run: |
+          echo "Action Triggered. Label: ${{ github.event.label.name }}"
+          echo "Issue Body Start: ${{ github.event.issue.body }}"
+
+      # 2. 提取用户邮箱地址 (匹配您的 Issue 格式)
+      - name: Extract User Email
+        id: extract_email
+        run: |
+          # 查找 '邮箱/手机:' 这一行来提取邮箱
+          EMAIL=$(echo "${{ github.event.issue.body }}" | grep "邮箱/手机:" | awk '{print $NF}')
+
+          if [ -z "$EMAIL" ]; then
+            echo "Error: User email not found. Check '邮箱/手机:' format."
+            exit 1
+          fi
+          echo "user_email=$EMAIL" >> $GITHUB_OUTPUT
+        shell: bash
+
+      # 3. 发送邮件
+      - name: Send Resolution Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: '工单更新：已解决'
+          to: ${{ steps.extract_email.outputs.user_email }}
+          from: ${{ secrets.SMTP_USERNAME }}
+          body: |
+            您的工单 #${{ github.event.issue.number }} 已解决。
+            Filo
