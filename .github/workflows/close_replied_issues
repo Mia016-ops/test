@@ -1,10 +1,9 @@
-
 # 监听 issues 事件，特别是当 Issue 被打开或重新打开时
 on:
   issues:
     types: [opened, reopened]
 
-# 允许 Action 关闭 Issue 和添加评论 (需要 write 权限)
+# Action 关闭 Issue 和添加评论
 permissions:
   issues: write
 
