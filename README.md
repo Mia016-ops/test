@@ -1,4 +1,4 @@
-# 📂 Filo User Feedback & Ticket Center
+#  Filo User Feedback & Ticket Center
 
 ---
 
@@ -16,13 +16,19 @@ This is the official user feedback and ticket management center for the **Filo**
 
 ## 💡 How to Submit a Ticket/Feedback
 
-To process your feedback more efficiently, please make sure to use the **Issue Templates** we provide when creating a new ticket.
+To process your feedback more efficiently, please be aware of the following two sources for ticket submission:
+
+### 1. Submit via GitHub Issue 
 
 1.  Click the **[New issue]** button in the upper right corner.
 2.  Select the template that fits your feedback type:
     * **🐞 Bug Report:** Use this when you discover a product feature that is not working or behaving abnormally.
     * **✨ Feature Request:** Use this when you wish to suggest adding a new feature or improving an existing one.
 3.  **Please ensure all necessary information in the template is filled out** (e.g., reproduction steps, environment details, expected results, etc.). The more detailed the information, the faster we can resolve the issue.
+
+### 2. Submit via Support Email
+
+Feedback and emails sent to **`support@filomail.com`** will be compiled by our staff and manually entered into this Issue repository for unified tracking and management.
 
 ---
 
